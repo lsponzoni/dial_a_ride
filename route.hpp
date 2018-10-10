@@ -8,6 +8,7 @@ typedef std::vector<int> Route;
 typedef std::vector<Route> RouteList;
 
 int succ(Route r, int node, int from);
+int find(Route r, int node, int from);
 
 void printSplitRoutes(RouteList routes);
 

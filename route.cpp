@@ -8,6 +8,13 @@ void printRoute(const Route r){
 	cout << endl;
 }
 
+int find(Route r, int obj, int from){	
+	for (int k = from; k < r.size(); k++){
+		if (r[k] == obj)
+			return k;
+	}
+	return -1;
+}
 
 void printBigRoute(const Route r){
 	using namespace std;

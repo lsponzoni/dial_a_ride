@@ -8,13 +8,13 @@ int main(){
 
 	Solution rl1 = Heuristic::Sequential::cons_distance(s);
 	Route sch1 = mergeRoutes(rl1.routes);
-	printBigRoute(sch1);
-	SolutionF::labelRouteFitness(sch1, s);
+	// printBigRoute(sch1);
+	// SolutionF::labelRouteFitness(sch1, s);
 
 	Solution rl2 =  Heuristic::Sequential::cons_time(s);
 	Route sch2 = mergeRoutes(rl2.routes);
-	printBigRoute(sch2);
-	SolutionF::labelRouteFitness(sch2, s);
+	//printBigRoute(sch2);
+	//SolutionF::labelRouteFitness(sch2, s);
 
 
 /*	
@@ -33,7 +33,8 @@ int main(){
 	// labelRouteFitness(theBestAnswer(), s);
 	*/
 	auto bestroutes = splitRoutes(theBestAnswer());
-	 for(uint i = 0; i < bestroutes.size(); i++){
+	
+	for(uint i = 0; i < bestroutes.size(); i++){
 	 	if(test_feasibility(bestroutes[i], i, s)){
 			std::cout << "Valid" << std::endl;
 		} else {
@@ -42,6 +43,9 @@ int main(){
 		printRoute(bestroutes[i]);
 		std::cout  << std::endl  << std::endl; 
 	}
-
+	
+	
+	//printScheduleConstraints(bestroutes[0], s);
+	//printScheduleConstraints(bestroutes[1], s);
 	return 0;
 }

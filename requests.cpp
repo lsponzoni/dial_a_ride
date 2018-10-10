@@ -84,8 +84,8 @@ double Requests::ride_time(int label) const {
 	return _ride_time[l];
 }
 
-double Requests::max_wait() const {
-	return 30;//unnecessarily big number
+double Requests::max_wait(int label) const {
+	return 300;//unnecessarily big number
 }
 Seats Requests::seats(int label) const{
 	return _seats[label];

@@ -23,7 +23,7 @@ struct Requests{
 	double ride_time(int label)const;
 	Seats seats(int label)const;
 	
-	double max_wait()const;
+	double max_wait(int label)const;
 	Indexes vertex_labels();
 
 	int src() const;
