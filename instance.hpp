@@ -4,7 +4,7 @@
 #include "requests.hpp"
 #include "fleet.hpp"
 #include "d_matrix.hpp"
-
+#include <iostream>
 struct Instance{
 	Fleet fleet;
 	Requests request_table;
@@ -18,11 +18,12 @@ struct Instance{
 	int vehiclesTotal() const { return fleet.size(); }
 	int requestsTotal() const { return request_table.request_total; }
 	
+
 	void print() const;
 };
 
 namespace InstanceF{
-	Instance read();
+	Instance read(std::istream& src);
 	Instance make(Fleet f, Requests r);
 }
 

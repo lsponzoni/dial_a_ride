@@ -18,7 +18,7 @@ struct Seats{
 };
 
 namespace SeatsF{
-	Seats read();
+	Seats read(std::istream& src);
 	Seats make(int i, int j, int k, int l);
 }
 

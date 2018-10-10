@@ -91,7 +91,8 @@ Seats Requests::seats(int label) const{
 	return _seats[label];
 }
 
-Requests RequestsF::read(int size){
+
+Requests RequestsF::read(int size,std::istream& src){
 	int _all_size = (2 * size) + 2 ;
 	std::vector<Point> points(_all_size);
 	std::vector<double> ride_time(_all_size);
@@ -102,13 +103,13 @@ Requests RequestsF::read(int size){
 
 	int label;
 	for(int i = 0; i < _all_size; i++){
-		std::cin >> label;
+		src >> label;
 		assert(label == i);
-		std::cin >> points[label].x >> points[label].y;
-		std::cin >> load_time[label];
-		std::cin >> ride_time[label];
-		seats[i] = SeatsF::read();
-		std::cin >> early[label] >> late[label];
+		src >> points[label].x >> points[label].y;
+		src >> load_time[label];
+		src >> ride_time[label];
+		seats[i] = SeatsF::read(src);
+		src >> early[label] >> late[label];
 		
 	}
 	return RequestsF::make(size, _all_size, points, early, late, load_time , ride_time, seats);

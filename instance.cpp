@@ -28,11 +28,12 @@ Instance InstanceF::make(Fleet f, Requests r)
 	return inst;
 }
 
-Instance InstanceF::read(){
-	using namespace std;
+
+Instance InstanceF::read(std::istream& src){
 	int vehicles, requests;
-	cin >> vehicles >> requests;
-	Fleet f = FleetF::read(vehicles);
-	Requests r = RequestsF::read(requests);
+	src >> vehicles >> requests;
+	Fleet f = FleetF::read(vehicles, src);
+	Requests r = RequestsF::read(requests, src);
+	
 	return make(f, r);
 }

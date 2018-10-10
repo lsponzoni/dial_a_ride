@@ -30,11 +30,11 @@ bool Fleet::can_give_a_ride(Seats riders, int i){
 	return seats[i].fit(riders);
 }
 
-Fleet FleetF::read(int size){
+Fleet FleetF::read(int size, std::istream& src){
 	Fleet f = {size, std::vector<double>(size), std::vector<Seats>(size)};
 	for(int i = 0; i < size; i++){
-		std::cin >> f.max_drive_time[i];
-		f.seats[i] = SeatsF::read();
+		src >> f.max_drive_time[i];
+		f.seats[i] = SeatsF::read(src);
 	}
 	return f;
 }

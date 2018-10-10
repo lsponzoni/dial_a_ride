@@ -57,12 +57,11 @@ Seats SeatsF::make(int i, int j, int k, int l){
 	return s;
 }
 
-Seats SeatsF::read(){
-	using namespace std;
+Seats SeatsF::read(std::istream& src){
 	Seats c;
 	for(int j = 0; j < capacities; j++){
 		int cap;
-		cin >> cap;
+		src >> cap;
 		c.push_back(cap);
 	}
 	return c;

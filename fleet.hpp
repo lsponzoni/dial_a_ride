@@ -19,7 +19,7 @@ struct Fleet{
 };
 
 namespace FleetF{
-	Fleet read(int size);
+	Fleet read(int size,std::istream& src);
 }
 
 #endif

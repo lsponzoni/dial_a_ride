@@ -51,7 +51,7 @@ namespace RequestsF{
 		std::vector<Seats> seats
 	);
 
-	Requests read(int size);
+	Requests read(int size, std::istream& src);
 }
 
 #endif
