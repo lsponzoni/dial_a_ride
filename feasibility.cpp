@@ -32,12 +32,19 @@ bool evaluateInsertion(int node, int rp, int rd){
 bool test_capacity(Route &r, IndexType vehicle, Instance &g){
 	Seats riders = SeatsF::make(0,0,0,0);
 	Requests gr = g.request_table;
+
 	for(int k :r){
 		riders.accum(gr.seats(k)); // update seats
-		if(!g.fleet.can_give_a_ride(riders, vehicle)) return false;
+		if(!g.fleet.can_give_a_ride(riders, vehicle)){ 
+			log("Can't fit", 0); riders.print();
+			log("Can't fit", 0); 
+			g.fleet.seats[vehicle].print();
+			return false;
+		}
 	}
 	return true;
 }
+
 
 void show_capacity(Route &r, Instance &g){
 	Seats riders = SeatsF::make(0,0,0,0);
@@ -50,30 +57,36 @@ void show_capacity(Route &r, Instance &g){
 	}
 }
 
+double ride_time_delta(int pickup, Schedule &departure, Schedule &arrival, Requests &gr){
+	int delivery = gr.delivery_to(pickup);
+	return (arrival[delivery] - departure[pickup]) - gr.ride_time(pickup);
+}
+
 
 
 bool firstPass(Route &r, Requests &gr, DMatrix &gdm, int points,
 	Schedule &lower_departure, Schedule &upper_departure, Schedule &arrival, Schedule &waits){
 	//  Set D0 = e0, L0 = l0
 	// j = 1 if j < 2n, j++ repeat loop
-	for(int it_j = 1; it_j <= points; it_j++){ // does not care when arrives at the depot
+	for(int it_j = 1; it_j < points; it_j++){ // does not care when arrives at the depot
 		int j_1 = r[it_j-1];
 		int j = r[it_j];
 		
 		
-		//   Set arrival(j) = D(j-1) + t(j-1, j)
+		//   Set arrival(j) = D(j) + t(j-1, j)
 		double travel_time = gdm.dist_points(j_1, j);
-		arrival[j] = lower_departure[j_1] + travel_time;	
-		
-		//   if arrival(j) > l(j) infeasible 
-		double late = gr.late(j);
-		if(arrival[j] > late) return false;
-
-		double service_time = gr.load_time(j);
-		
 		double early = gr.early(j);
-		//  D(j) = max (arrival(j), e(j)) 		
-		double service_start = (arrival[j] > early)? arrival[j] : early;
+		double late = gr.late(j);
+		double service_time = gr.load_time(j);
+
+		arrival[j] = lower_departure[j_1] + travel_time;	
+		if(arrival[j] > late) { 
+			log("Infeasible at", j);
+			log("it at", it_j);
+			return false; 
+		}
+
+		double service_start = (arrival[j] > early)? arrival[j] : early;		
 		lower_departure[j] = service_start + service_time; 
 		
 		double W = gr.max_wait(j);	
@@ -96,29 +109,10 @@ bool firstPass(Route &r, Requests &gr, DMatrix &gdm, int points,
 	}
 	return true;
 }
+
 /*
- * Implements Tang changes
- * set W^ = D(2n) - A(2n), j = 2n 
- * loop
- * set D(j-1) = A(j) - t(j-1,j) A(j-1) = max (A(j-1),D(j-1) - W)
- * if(j-1 in pickup)
- * 		set delta = D(delivery(j-1)) - D(pickup(j-1)) - alpha t(pickup(j-1), delivery(j-1))
- * 		if delta > 0 adjustment to Drive Time. 
- * 			if delta > W^ infeasible
- * 			else 
- * 				set D(j-1) = D(j-1) + delta  A(j-1) = max(A(j-1), D(j-1) - W)  W = W - delta
- * 					for(k = succ(pickup) to 2n)
- * 						D(k) = max(D(k), D(k-1),t(k-1,k))
- * 		if D(j) > L(j) infeasible* 		
- *	W = W + (D(j) - A(j))
- * j > 0, j-- 
+ * Implements Tang 2010 changes
  */
-
-double ride_time_delta(int pickup, Schedule &departure, Schedule &arrival, Requests &gr){
-	int delivery = gr.delivery_to(pickup);
-	return (arrival[delivery] - departure[pickup]) - gr.ride_time(pickup);
-}
-
 // Fits to solve the ride times
 bool secondPass(Route &r, 
 	Requests &gr, DMatrix &gdm, int points, 
@@ -126,7 +120,7 @@ bool secondPass(Route &r,
 {
 	double wait_balance = lower_departure[points - 1] - arrival[points-1]; 
 	//  set W^ = D(2n) - A(2n), j = 2n 
-	for(int it_j = points - 1; it_j >= 0; it_j--){
+	for(int it_j = points - 2; it_j > 0; it_j--){
 		int jp1 = r[it_j + 1]; //j+1 
 		int j =  r[it_j]; // j
 		
@@ -161,7 +155,7 @@ bool secondPass(Route &r,
 						int k = r[it_k];
 						int k_1 = r[it_k - 1];
 						// D(k) = max(D(k), D(k-1),t(k-1,k))
-						double lower = (lower_departure[k_1] + gdm.dist_points(k_1, k)/* + gr.load_time(k)*/);
+						double lower = (lower_departure[k_1] + gdm.dist_points(k_1, k) + gr.load_time(k));
 						if(lower_departure[k] < lower)
 							lower_departure[k] = lower;
 						
@@ -255,9 +249,10 @@ bool feasible_schedule(Route &r, Instance &g,
 	DMatrix gdm = g.dm;
 	int points = r.size();
 
-	lower_departure[0] = gr.early(1);
-	upper_departure[0] = gr.late(1);
-	arrival[0] = gr.early(1);
+	lower_departure[0] = std::max(gr.early(r[1]) - gdm.dist_points(r[0], r[1]),
+								  gr.early(r[0]));
+	upper_departure[0] = gr.late(r[0]);
+	arrival[0] = gr.early(r[0]);
 	// supposing short circuit for &&
 	bool f = false;
 		if(firstPass(r, gr, gdm, points, lower_departure, upper_departure, arrival, waits)) {
@@ -281,6 +276,9 @@ bool test_feasibility(Route &r, VehicleIndex v, Instance &g){
 	int points = g.request_table.size();
 	Schedule A(points),D(points),L(points), W(points);
 	g.request_table._ride_time[0] = g.fleet.max_drive_time[v];
+	if(g.request_table.isDelivery(r[1])) return false; 
+	if(g.request_table.isPickup(r[r.size() - 1])) return false; 
+
 	return test_capacity(r, v, g) && feasible_schedule(r, g,  D, L, A, W);
 }
 
